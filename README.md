@@ -6,7 +6,9 @@ These projects are built with the [Truffle framework](https://trufflesuite.com/)
 
 ## Dependencies
 
-Some projects use dependencies, including [OpenZeppelin](https://openzeppelin.com/) as a source for smart contract inheritance, and therefore would need to be installed prior to working with the project. Each project maintains their own `package.json` and dependencies. Install them with NPM.
+Some projects use dependencies, including [OpenZeppelin](https://openzeppelin.com/) as a source for smart contract inheritance, and therefore would need to be installed prior to working with the project. Each project maintains their own `package.json` and dependencies.
+
+Install them with NPM:
 
 ```bash
 npm install
