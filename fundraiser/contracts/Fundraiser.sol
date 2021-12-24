@@ -42,6 +42,13 @@ contract Fundraiser is Ownable {
         _transferOwnership(_custodian);
     }
 
+    // Fallback function
+    fallback() external payable {
+        // Increase donations (i.e. from anonymous donation)
+        totalDonations = totalDonations.add(msg.value);
+        donationsCount++;
+    }
+
     function setBeneficiary(address payable _beneficiary) public onlyOwner {
         beneficiary = _beneficiary;
     }
