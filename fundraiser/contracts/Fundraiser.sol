@@ -2,13 +2,26 @@
 pragma solidity >=0.4.21 <0.9.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 contract Fundraiser is Ownable {
+    using SafeMath for uint256;
+
+    struct Donation {
+        uint256 value;
+        uint256 date;
+    }
+    mapping(address => Donation[]) private _donations;
+
     string public name;
     string public url;
     string public imageURL;
     string public description;
+
     address payable public beneficiary;
+
+    uint256 public totalDonations;
+    uint256 public donationsCount;
 
     constructor(
         string memory _name,
@@ -17,7 +30,7 @@ contract Fundraiser is Ownable {
         string memory _description,
         address payable _beneficiary,
         address _custodian
-    ) public {
+    ) {
         name = _name;
         url = _url;
         imageURL = _imageURL;
@@ -28,5 +41,40 @@ contract Fundraiser is Ownable {
 
     function setBeneficiary(address payable _beneficiary) public onlyOwner {
         beneficiary = _beneficiary;
+    }
+
+    function myDonationsCount() public view returns (uint256) {
+        return _donations[msg.sender].length;
+    }
+
+    function donate() public payable {
+        Donation memory donation = Donation({
+            value: msg.value,
+            date: block.timestamp
+        });
+        // Add for donor
+        _donations[msg.sender].push(donation);
+        // Add to totals
+        totalDonations = totalDonations.add(msg.value);
+        donationsCount++;
+    }
+
+    function myDonations()
+        public
+        view
+        returns (uint256[] memory values, uint256[] memory dates)
+    {
+        // Since we cannot return a struct, we must construct and return a tuple that matches the schema
+        uint256 count = myDonationsCount();
+        values = new uint256[](count);
+        dates = new uint256[](count);
+
+        for (uint256 i = 0; i < count; i++) {
+            Donation storage donation = _donations[msg.sender][i];
+            values[i] = donation.value;
+            dates[i] = donation.date;
+        }
+
+        return (values, dates);
     }
 }
