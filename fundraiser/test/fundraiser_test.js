@@ -88,7 +88,7 @@ contract('Fundraiser', accounts => {
 			assert(dates[0], 'date should be present')
 		})
 
-		it('increases the amount of total donations', async () => {
+		it('increases the totalDonations amount', async () => {
 			const currentTotal = await fundraiser.totalDonations()
 			await fundraiser.donate({ from: donor, value })
 			const newTotal = await fundraiser.totalDonations()
@@ -96,7 +96,7 @@ contract('Fundraiser', accounts => {
 			assert.equal(diff, value, 'difference should match the donation value')
 		})
 
-		it('increases the total number of donations made', async () => {
+		it('increases donationsCount', async () => {
 			const currentCount = await fundraiser.donationsCount()
 			await fundraiser.donate({ from: donor, value })
 			const newCount = await fundraiser.donationsCount()
@@ -106,6 +106,55 @@ contract('Fundraiser', accounts => {
 		it('emits the DonationsReceived event', async () => {
 			const tx = await fundraiser.donate({ from: donor, value })
 			const expectedEvent = 'DonationReceived'
+			const actualEvent = tx.logs[0].event
+			assert.equal(actualEvent, expectedEvent, 'events should match')
+		})
+	})
+
+	describe('withdrawing funds', () => {
+		beforeEach(async () => {
+			await fundraiser.donate({ from: accounts[2], value: web3.utils.toWei('0.1') })
+		})
+
+		describe('access controls', () => {
+			it('throws an error when called from a non-owner account', async () => {
+				try {
+					await fundraiser.withdraw({ from: accounts[3] })
+					assert.fail('withdraw was not restricted to owners')
+				} catch (err) {
+					const expectedError = 'Ownable: caller is not the owner'
+					const actualError = err.reason
+					assert.equal(actualError, expectedError, 'should not be permitted')
+				}
+			})
+
+			it('permits the owner to call the function', async () => {
+				try {
+					await fundraiser.withdraw({ from: owner })
+					assert(true, 'no errors were thrown')
+				} catch (err) {
+					assert.fail('should not have thrown an error')
+				}
+			})
+		})
+
+		it('transfers balance to beneficiary', async () => {
+			const currentContractBalance = await web3.eth.getBalance(fundraiser.address)
+			const currentBeneficiaryBalance = await web3.eth.getBalance(beneficiary)
+
+			await fundraiser.withdraw({ from: owner })
+
+			const newContractBalance = await web3.eth.getBalance(fundraiser.address)
+			const newBeneficiaryBalance = await web3.eth.getBalance(beneficiary)
+			const beneficiaryDiff = newBeneficiaryBalance - currentBeneficiaryBalance
+
+			assert.equal(newContractBalance, 0, 'contract should have a 0 balance')
+			assert.equal(beneficiaryDiff, currentContractBalance, 'beneficiary should receive all funds')
+		})
+
+		it('emits Withdraw event', async () => {
+			const tx = await fundraiser.withdraw({ from: owner })
+			const expectedEvent = 'Withdraw'
 			const actualEvent = tx.logs[0].event
 			assert.equal(actualEvent, expectedEvent, 'events should match')
 		})
