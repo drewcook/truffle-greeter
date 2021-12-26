@@ -100,7 +100,7 @@ contract('Fundraiser', accounts => {
 			const currentCount = await fundraiser.donationsCount()
 			await fundraiser.donate({ from: donor, value })
 			const newCount = await fundraiser.donationsCount()
-			assert.equal(1, newCount - currentCount, 'donationsCount should increment by 1')
+			assert.equal(newCount - currentCount, 1, 'donationsCount should increment by 1')
 		})
 
 		it('emits the DonationsReceived event', async () => {
@@ -181,7 +181,7 @@ contract('Fundraiser', accounts => {
 			await web3.eth.sendTransaction({ to: fundraiser.address, from: accounts[9], value })
 
 			const newCount = await fundraiser.donationsCount()
-			assert.equal(1, newCount - currentCount, 'donationsCount should increment by 1')
+			assert.equal(newCount - currentCount, 1, 'donationsCount should increment by 1')
 		})
 	})
 })
